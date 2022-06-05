@@ -1,276 +1,182 @@
-from time import sleep
-import sys
 import random
+import time
 
-# haha i legit just lost 400 lines of code im going to cry
-# bad implementation
-black = "\033[1;90m"
-red = "\033[0;31m"
-green = "\033[0;32m"
-yellow = "\033[0;33m"
-blue = "\033[0;94m"
-cyan = "\033[0;36m"
+crewmates = ['Black', 'Red', 'Green', 'Blue', 'Yellow', 'Cyan']
+roomlist=['the medbay', 'the electrical', 'the main lobby', 'the navigation room', 'the com room', 'the engine room']
+def dialogue(speaker, text):
+	print(f"{speaker}: {text}")
 
-white = "\033[0;37m"
-bold = "\033[1m"
-normal = "\033[0m"
-
-
-class assets:
-    title = bold + r"""
-	___                        ____       
-  / _ | __ _  ___  ___  ___ _/ __/_ _____
- / __ |/  ' \/ _ \/ _ \/ _ `/\ \/ // (_-<
-/_/ |_/_/_/_/\___/_//_/\_, /___/\_,_/___/
-                      /___/              
-	""" + normal
-    amongus = r"""
-	⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣠⣤⣤⣤⣤⣤⣶⣦⣤⣄⡀⠀⠀⠀⠀⠀⠀⠀⠀ 
-	⠀⠀⠀⠀⠀⠀⠀⠀⢀⣴⣿⡿⠛⠉⠙⠛⠛⠛⠛⠻⢿⣿⣷⣤⡀⠀⠀⠀⠀⠀ 
-	⠀⠀⠀⠀⠀⠀⠀⠀⣼⣿⠋⠀⠀⠀⠀⠀⠀⠀⢀⣀⣀⠈⢻⣿⣿⡄⠀⠀⠀⠀ 
-	⠀⠀⠀⠀⠀⠀⠀⣸⣿⡏⠀⠀⠀⣠⣶⣾⣿⣿⣿⠿⠿⠿⢿⣿⣿⣿⣄⠀⠀⠀ 
-	⠀⠀⠀⠀⠀⠀⠀⣿⣿⠁⠀⠀⢰⣿⣿⣯⠁⠀⠀⠀⠀⠀⠀⠀⠈⠙⢿⣷⡄⠀ 
-	⠀⠀⣀⣤⣴⣶⣶⣿⡟⠀⠀⠀⢸⣿⣿⣿⣆⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣿⣷⠀ 
-	⠀⢰⣿⡟⠋⠉⣹⣿⡇⠀⠀⠀⠘⣿⣿⣿⣿⣷⣦⣤⣤⣤⣶⣶⣶⣶⣿⣿⣿⠀ 
-	⠀⢸⣿⡇⠀⠀⣿⣿⡇⠀⠀⠀⠀⠹⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡿⠃⠀ 
-	⠀⣸⣿⡇⠀⠀⣿⣿⡇⠀⠀⠀⠀⠀⠉⠻⠿⣿⣿⣿⣿⡿⠿⠿⠛⢻⣿⡇⠀⠀ 
-	⠀⣿⣿⠁⠀⠀⣿⣿⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⣿⣧⠀⠀ 
-	⠀⣿⣿⠀⠀⠀⣿⣿⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⣿⣿⠀⠀ 
-	⠀⣿⣿⠀⠀⠀⣿⣿⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⣿⣿⠀⠀ 
-	⠀⢿⣿⡆⠀⠀⣿⣿⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⣿⡇⠀⠀ 
-	⠀⠸⣿⣧⡀⠀⣿⣿⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣿⣿⠃⠀⠀ 
-	⠀⠀⠛⢿⣿⣿⣿⣿⣇⠀⠀⠀⠀⠀⣰⣿⣿⣷⣶⣶⣶⣶⠶⠀⢠⣿⣿⠀⠀⠀ 
-	⠀⠀⠀⠀⠀⠀⠀⣿⣿⠀⠀⠀⠀⠀⣿⣿⡇⠀⣽⣿⡏⠁⠀⠀⢸⣿⡇⠀⠀⠀ 
-	⠀⠀⠀⠀⠀⠀⠀⣿⣿⠀⠀⠀⠀⠀⣿⣿⡇⠀⢹⣿⡆⠀⠀⠀⣸⣿⠇⠀⠀⠀ 
-	⠀⠀⠀⠀⠀⠀⠀⢿⣿⣦⣄⣀⣠⣴⣿⣿⠁⠀⠈⠻⣿⣿⣿⣿⡿⠏⠀⠀⠀⠀ 
-	⠀⠀⠀⠀⠀⠀⠀⠈⠛⠻⠿⠿⠿⠿⠋⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-	"""
-
-    smallsus_and_bigsus_being_wholesome = r"""
-	⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-	⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣠⣴⣶⣿⣿⣷⣶⣄⣀⣀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-	⠀⠀⠀⠀⠀⠀⠀⠀⠀⣰⣾⣿⣿⡿⢿⣿⣿⣿⣿⣿⣿⣿⣷⣦⡀⠀⠀⠀⠀⠀
-	⠀⠀⠀⠀⠀⠀⠀⢀⣾⣿⣿⡟⠁⣰⣿⣿⣿⡿⠿⠻⠿⣿⣿⣿⣿⣧⠀⠀⠀⠀
-	⠀⠀⠀⠀⠀⠀⠀⣾⣿⣿⠏⠀⣴⣿⣿⣿⠉⠀⠀⠀⠀⠀⠈⢻⣿⣿⣇⠀⠀⠀
-	⠀⠀⠀⠀⢀⣠⣼⣿⣿⡏⠀⢠⣿⣿⣿⠇⠀⠀⠀        ⠀⠈⣿⣿⣿⡀⠀⠀
-	⠀⠀⠀⣰⣿⣿⣿⣿⣿⡇⠀⢸⣿⣿⣿⡀⠀⠀⠀         ⠀⣿⣿⣿⡇⠀⠀
-	⠀⠀⢰⣿⣿⡿⣿⣿⣿⡇⠀⠘⣿⣿⣿⣧⠀⠀⠀⠀⠀⠀⢀⣸⣿⣿⣿⠁⠀⠀
-	⠀⠀⣿⣿⣿⠁⣿⣿⣿⡇⠀⠀⠻⣿⣿⣿⣷⣶⣶⣶⣶⣶⣿⣿⣿⣿⠃⠀⠀⠀
-	⠀⢰⣿⣿⡇⠀⣿⣿⣿⠀⠀⠀⠀⠈⠻⣿⣿⣿⣿⣿⣿⣿⣿⣿⠟⠁⠀⠀⠀⠀
-	⠀⢸⣿⣿⡇⠀⣿⣿⣿⠀⠀⠀⠀⠀⠀⠀⠉⠛⠛⠛⠉⢉⣿⣿⠀⠀⠀⠀⠀⠀
-	⠀⢸⣿⣿⣇⠀⣿⣿⣿⠀⠀⠀⠀⠀⢀⣤⣤⣤⡀⠀⠀⢸⣿⣿⣿⣷⣦⠀⠀⠀
-	⠀⠀⢻⣿⣿⣶⣿⣿⣿⠀⠀⠀⠀⠀⠈⠻⣿⣿⣿⣦⡀⠀⠉⠉⠻⣿⣿⡇⠀⠀
-	⠀⠀⠀⠛⠿⣿⣿⣿⣿⣷⣤⡀⠀⠀⠀⠀⠈⠹⣿⣿⣇⣀⠀⣠⣾⣿⣿⡇⠀⠀
-	⠀⠀⠀⠀⠀⠀⠀⠹⣿⣿⣿⣿⣦⣤⣤⣤⣤⣾⣿⣿⣿⣿⣿⣿⣿⣿⡟⠀⠀⠀
-	⠀⠀⠀⠀⠀⠀⠀⠀⢀⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠀⠀⠀⠀⠀ 
-	⠀⠀⠀⠀⠀⠀⠀⠀⣼⣿⠋⠀⠀⠀⠀⠀⠀⠀⢀⣀⣀⠈⢻⣿⣿⡄⠀⠀⠀⠀ 
-	⠀⠀⠀⠀⠀⠀⠀⣸⣿⡏⠀⠀⠀⣠⣶⣾⣿⣿⣿⠿⠿⠿⢿⣿⣿⣿⣄⠀⠀⠀ 
-	⠀⠀⠀⠀⠀⠀⠀⣿⣿⠁⠀⠀⢰⣿⣿⣯⠁⠀⠀⠀⠀⠀⠀⠀⠈⠙⢿⣷⡄⠀ 
-	⠀⠀⣀⣤⣴⣶⣶⣿⡟⠀⠀⠀⢸⣿⣿⣿⣆⠀⠀⠀⠀     ⠀⠀⠀⠀⣿⣷⠀ 
-	⠀⢰⣿⡟⠋⠉⣹⣿⡇⠀⠀⠀⠘⣿⣿⣿⣿⣷⣦⣤⣤⣤⣶⣶⣶⣶⣿⣿⣿⠀ 
-	⠀⢸⣿⡇⠀⠀⣿⣿⡇⠀⠀⠀⠀⠹⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡿⠃⠀ 
-	⠀⣸⣿⡇⠀⠀⣿⣿⡇⠀⠀⠀⠀⠀⠉⠻⠿⣿⣿⣿⣿⡿⠿⠿⠛⢻⣿⡇⠀⠀ 
-	⠀⣿⣿⠁⠀⠀⣿⣿⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⣿⣧⠀⠀ 
-	⠀⣿⣿⠀⠀⠀⣿⣿⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⣿⣿⠀⠀ 
-	⠀⣿⣿⠀⠀⠀⣿⣿⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⣿⣿⠀⠀ 
-	⠀⢿⣿⡆⠀⠀⣿⣿⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⣿⡇⠀⠀ 
-	⠀⠸⣿⣧⡀⠀⣿⣿⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣿⣿⠃⠀⠀ 
-	⠀⠀⠛⢿⣿⣿⣿⣿⣇⠀⠀⠀⠀⠀⣰⣿⣿⣷⣶⣶⣶⣶⠶⠀⢠⣿⣿⠀⠀⠀ 
-	⠀⠀⠀⠀⠀⠀⠀⣿⣿⠀⠀⠀⠀⠀⣿⣿⡇⠀⣽⣿⡏⠁⠀⠀⢸⣿⡇⠀⠀⠀ 
-	⠀⠀⠀⠀⠀⠀⠀⣿⣿⠀⠀⠀⠀⠀⣿⣿⡇⠀⢹⣿⡆⠀⠀⠀⣸⣿⠇⠀⠀⠀ 
-	⠀⠀⠀⠀⠀⠀⠀⢿⣿⣦⣄⣀⣠⣴⣿⣿⠁⠀⠈⠻⣿⣿⣿⣿⡿⠏⠀⠀⠀⠀ 
-	⠀⠀⠀⠀⠀⠀⠀⠈⠛⠻⠿⠿⠿⠿⠋⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-	"""
-
-    was_impos = r"""
-	. 　　　。　　　　•　 　ﾟ　　。 　　.
+def taskreact(action="REACT"):
+	start = time.time()
+	userans = input(f"Quick! Type {action} within 3 seconds: ")
+	end = time.time()
 	
-	　　　.　　　 　　.　　　　　。　　 。　. 　
+	if (end - start) > 3:
+		print("You took too long...")
+		return False
 	
-	.　　 。　　　　　 ඞ 。 . 　　 • 　　　　•
+	if userans.strip(' ').lower() == action.lower():
+		print(f"You were able to sucessfully {action}.")
+		return True
 	
-	　　ﾟ　　 %d was not An Impostor.　 。　.
+	else:
+		print(f"You have failed to {action}.")
+		return False
+		
+def taskmath():
+	x = random.randint(1,99)
+	y = random.randint(1,99)
+	userans = input(f"\nWhat is {x} + {y}?: ").strip()
 	
-	　　'　　　 The Impostor remains 　 　。
+	while not userans.isnumeric():
+		userans = input("\nSorry, your answer isn't numeric. Please enter in a integer: ")
+
+	print(f"\nThe correct answer is {x+y}.")
 	
-	　　ﾟ　　　.　　　. ,　　　　.　          .
-	"""
+	if userans == (x+y):
+		return False
+	
+	return True
 
-    smallsus = r"""
-	⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣠⣴⣶⣿⣿⣷⣶⣄⣀⣀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-	⠀⠀⠀⠀⠀⠀⠀⠀⠀⣰⣾⣿⣿⡿⢿⣿⣿⣿⣿⣿⣿⣿⣷⣦⡀⠀⠀⠀⠀⠀
-	⠀⠀⠀⠀⠀⠀⠀⢀⣾⣿⣿⡟⠁⣰⣿⣿⣿⡿⠿⠻⠿⣿⣿⣿⣿⣧⠀⠀⠀⠀
-	⠀⠀⠀⠀⠀⠀⠀⣾⣿⣿⠏⠀⣴⣿⣿⣿⠉⠀⠀⠀⠀⠀⠈⢻⣿⣿⣇⠀⠀⠀
-	⠀⠀⠀⠀⢀⣠⣼⣿⣿⡏⠀⢠⣿⣿⣿⠇⠀⠀⠀⠀⠀⠀⠀⠈⣿⣿⣿⡀⠀⠀
-	⠀⠀⠀⣰⣿⣿⣿⣿⣿⡇⠀⢸⣿⣿⣿⡀⠀⠀⠀⠀⠀⠀⠀⠀⣿⣿⣿⡇⠀⠀
-	⠀⠀⢰⣿⣿⡿⣿⣿⣿⡇⠀⠘⣿⣿⣿⣧⠀⠀⠀⠀⠀⠀⢀⣸⣿⣿⣿⠁⠀⠀
-	⠀⠀⣿⣿⣿⠁⣿⣿⣿⡇⠀⠀⠻⣿⣿⣿⣷⣶⣶⣶⣶⣶⣿⣿⣿⣿⠃⠀⠀⠀
-	⠀⢰⣿⣿⡇⠀⣿⣿⣿⠀⠀⠀⠀⠈⠻⣿⣿⣿⣿⣿⣿⣿⣿⣿⠟⠁⠀⠀⠀⠀
-	⠀⢸⣿⣿⡇⠀⣿⣿⣿⠀⠀⠀⠀⠀⠀⠀⠉⠛⠛⠛⠉⢉⣿⣿⠀⠀⠀⠀⠀⠀
-	⠀⢸⣿⣿⣇⠀⣿⣿⣿⠀⠀⠀⠀⠀⢀⣤⣤⣤⡀⠀⠀⢸⣿⣿⣿⣷⣦⠀⠀⠀
-	⠀⠀⢻⣿⣿⣶⣿⣿⣿⠀⠀⠀⠀⠀⠈⠻⣿⣿⣿⣦⡀⠀⠉⠉⠻⣿⣿⡇⠀⠀
-	⠀⠀⠀⠛⠿⣿⣿⣿⣿⣷⣤⡀⠀⠀⠀⠀⠈⠹⣿⣿⣇⣀⠀⣠⣾⣿⣿⡇⠀⠀
-	⠀⠀⠀⠀⠀⠀⠀⠹⣿⣿⣿⣿⣦⣤⣤⣤⣤⣾⣿⣿⣿⣿⣿⣿⣿⣿⡟⠀⠀⠀
-	⠀⠀⠀⠀⠀⠀⠀⠀⠀⠉⠻⢿⣿⣿⣿⣿⣿⣿⠿⠋⠉⠛⠋⠉⠉⠁⠀⠀⠀⠀
-	"""
-    tinysus = 'ඞ'
-
-
-#############################
-# World Assets
-
-user = {'color': '', 'tasks completed': 0}
-impostor = {'color': '', 'kill count': 0}
+def tasktrivia():
+	qna = {
+		"What game studio created of Among Us?": 'innersloth',
+		"Which is the smallest planet within our solar system?": "mercury",
+		"Which planet has supersonic winds?": 'neptune',
+		"Which planet rotates on its side?": "uranus",
+		"Which planet has the most volcanoes?": "venus",
+		"Which is the oldest planet in our solar system?": 'jupiter',
+		"Which planet has the most moons?": 'saturn'
+	}
+	question=random.choice(qna)
+	
+	userans = input(f"{question}: ").strip(' ').lower()
+	
+	if userans == qna[question]:
+		"You're right."
+		return True
+	else:
+		print(f"That is incorrect. The correct answer is {qna[question]}.")
+		return False
 
 
-class characters:
-    npcs = ['black', 'red', 'green', 'blue', 'yellow', 'cyan']
-    deceased = []
+
+# user
 
 
-class Room:
-    def __init__(self, name, tasks, has_body):
-        self.name = name
-        self.tasks = tasks
-        self.has_body = has_body
 
+# user
 
-rooms = {
-    "med": Room("Medical", 0, False),
-    "elec": Room("Electrical and Engine", 0, False),
-    "sleep": Room("Sleep Chambers", 0, False),
-    "lobby": Room("Main Lobby", 0, False),
-    "nav": Room("Navigation", 0, False),
-}
-
-
-class cutscenes:
-    def happy():
-        cut = random.randint(0, 1)
-
-        if cut == 0:
-            print("")
-
-        if cut == 1:
-            print("")
-
-        if cut == 2:
-            print("")
-
-    def sad():
-        cut = random.randint(0, 1)
-
-        if cut == 0:
-            print("")
-
-        if cut == 1:
-            print("")
-
-        if cut == 2:
-            print("")
-
-    def imposter_revealing():
-        cut = random.randint(0, 1)
-
-        if cut == 0:
-            print("")
-
-        if cut == 1:
-            print("")
-
-        if cut == 2:
-            print("")
-
-    def joke():
-        print("")
-
-
-#############################
-
-{
-    # black = "\033[0;30;41m"
-    # red = "\033[0;31m"
-    # green = "\033[0;32m"
-    # yellow = "\033[0;33m"
-    # blue = "\033[0;34;47m"
-    # cyan = "\033[0;36m"
-    # white = "\033[0;37m"
-    # purple = "\033[0;35m"
-    # bright_black = "\033[1;90m"
-    # bright_red = "\033[0;91m"
-    # bright_green = "\033[0;92m"
-    # bright_yellow = "\033[3;93;44m"
-    # bright_blue = "\033[0;94m"
-    # bright_purple = "\033[0;95m"
-    # bright_cyan = "\033[0;96m"
-    # bright_white = "\033[0;97m"
-}
-
-
-# text effects
-
-def bolden(txt):
-	return bold + txt + normal
-
-def dotdotdot(delay=0.5):
-	for x in range(3):
-			type('.', delay)
-	print("\n")
-
-def type(text, delay=0.05):
-		for character in text:
-				sys.stdout.write(character)
-				sys.stdout.flush()
-				sleep(delay)
-
-def color_print(colorcode, text, typed=False, delay=0.05):
-		if typed:
-				type(colorcode + text + white, delay)
-		else:
-				print(colorcode + text + white, end='')
-
-
-print(red + assets.title + white + '\n')
-print("Welcome to " + red + "AmongSus 2.0" + white +
-      " - a luck based murder mystery.\n\nFirst, select your avatar color. We have red, black, green, yellow, blue, cyan. ", end='')
-
-user["color"] = input(
-    "Take your pick: "
-)
-
-while user["color"] not in characters.npcs:
-    user["color"] = input(
+user = input("Take your pick: ").lower().strip(' ').capitalize()
+while user not in crewmates:
+    user = input(
         "\nSorry, we don't have that color, or you may have a typo. Please try again: "
-    )
+    ).strip(' ').lower().capitalize()
+crewmates.remove(user)
 
-print('\n')
-dotdotdot()
-# remove user color from main npc list
-characters.npcs.remove(user["color"])
+# character stats setup
+trust = 0 # negation of trust is suspicion; trust between you and your crewmates
+camraderie = 0 # negation of camraderie is hostility; trust between you and your crewmates
+morale = 0 # general vibe of ship
+clues = 0
 
-print("\nYou have chosen ", end='')
-color_print(eval(user["color"]), user["color"])
-print(".\n")
+max_achiveable_trust = 0
+max_achiveable_camraderie = 0
+max_achiveable_morale = 0
+max_achivable_clues = 0
 
-dotdotdot()
+# impos
+impostor = random.choice(crewmates)
+crewmates.remove(impostor)
 
-bolden("INTRODUCTION")
+def trustcut():
+	charactercut = random.choice(crewmates)
+	roomtcut = random.choice(roomlist)
+	
+	print(f"\nYou walk by {charactercut} on your way to {roomtcut}.")
 
-type(
-    "You are a astronaut embarking on a mission to another planet, but recently, the spaceship has been breached by a unknown entity. ")
+	dialogue(charactercut, f"Hi {user}.")
+	dialogue(user, f"Hey.")
+	dialogue(charactercut, f"Where are you going?")
+	dialogue(user, f"Just heading to {roomtcut} to do some tasks.")
+	dialogue(charactercut, f"Oh I see.")
+	dialogue(charactercut, f"Can I come with you?")
+	print(f"You think about the impostor that's been going around. If {charactercut} isn't the impostor, it would be understandable them to feel that way.")
+	print(f"On the other hand, if they aren't the crewmate...")
+	
+	useroption = input(f"Do you trust {charactercut}? (Y/N): ").strip(' ').lower()
+	while useroption != 'y' or useroption != 'n':
+		input(f"Input a proper answer. (Y/N): ")
 
-sleep(1)
+	if useroption == 'n':
+		dialogue(user, "Uhhhhh... I'd rather stay alone. It's probably safer that way.")
+		print(f"{charactercut} looks a bit sad.")
+		dialogue(charactercut, "Don't worry. I understand where you're coming from.")
+		print(f"camraderie: -100 trust: -50")
+		camraderie=-100
+		trust=-10
+		max_achiveable_camraderie=+100
+		max_achiveable_trust=+10
+		return
 
-type("Blending in as a crewmate, the entity is now under diguise. ")
+	dialogue(charactercut, "Yay! Let's go together then.")
 
-sleep(1)
+	print(f"The two of you walk inside {roomtcut}.")
 
-type("Uncover identity of the " + bolden("IMPOSTOR") +
-      ", and save the crew before it's too late")
+	dialogue(charactercut, "So what kind of task is it?")
+	dialogue(user, "It's just some simple calculations.")
 
-dotdotdot(0.5)
+	if random.randint(1,10) == 1:
+		# death ending
+		deathending()
+	
+	print(f"\n{charactercut} watches closely as you do your task")
+	
+	if taskmath():
+		print(f"\n{charactercut} smiles. You have completed the task.\n")
+	
+	else:
+		print(f"\nYou have failed the task. {charactercut} has become suspicious of you...\n")
 
-sleep(2)
+		dialogue(user, "Oops.")
+		print(f"\n{charactercut} is looking a bit nervous being around you now.\n")
+		print(f"\ntrust: -50  suspiciousness: +50  hostility: +50")
+		trust=-100
+		max_achiveable_trust=+100
+		camraderie=-100
+		max_achiveable_camraderie+=100
 
-color_print(eval(user["color"]), assets.tinysus)
-type("  Welcome aboard, " + bolden('crewmate') + '.')
+def crewmatechatcut():
+	print()
+
+def imposterhintcut():
+	# make it room specific?
+	print()
+
+def emergencymalfunctioncut():
+	print()
+
+def meetingcut():
+	print()
+
+def bodyencountercut():
+	print()
+
+def randomthoughtscut():
+	dialogues=["You wonder about your family back at home. You wonder if they miss you too.", "The stars are pretty tonight. But I guess in space it's always night.", "You miss Earth.", "You feel like someone is watching you.", "You feel a prescence behind your back.", "You might've seen a flash of color in the vents.",]
+	print(random.choice(dialogues))
+
+def deathending(charactercut, roomcut):
+	print("You feel ")
+	
+def imposterending():
+	print()
+# true ending - hero: perfect run with no casulaties
+# death ending - impostor kills you
+# sus ending - ejection
+# spacewreak: ship gets destroyed due to low task completion or emergency malfunction
+# neutral ending - generally average scores and survivals
+# sabotaged ending: bad scores in general
+# impostor ending: the user all the worst options. revealed that you were actually the impostor all along
+
+# gut instints reverse physch, like keeping asking are you sure?
