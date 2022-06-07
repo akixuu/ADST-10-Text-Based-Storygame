@@ -7,9 +7,17 @@ roomlist=['the medbay', 'the electrical', 'the main lobby', 'the com room', 'the
 karma=0
 roundkill=''
 
+def typeprint(text, delay=0.03):
+    for character in text:
+        sys.stdout.write(character)
+        sys.stdout.flush()
+        time.sleep(delay)
 
 def dialogue(speaker, text):
-	print(f"{speaker}: {text}\n")
+	print("__________________________\n")
+	print(f"{speaker}: ", end='')
+	typeprint(text)
+	print("\n__________________________\n")
 
 def doaction(action="REACT"):
 	start = time.time()
@@ -29,7 +37,7 @@ def doaction(action="REACT"):
 		return False
 
 def luck(test=False, max='6'):
-	userans = input(f"Input a number from 1 to {max}.").strip()
+	userans = input(f"Input a number from 1 to {max}: ").strip()
 	x = random.randint(1,max)
 	while not userans.isnumeric() and max >= int(userans) >= 1:
 		userans = input(f"\nSorry, your answer isn't numeric, or isn't within the bounds (1-{max}). Try again:  ").strip()
@@ -88,6 +96,22 @@ def kill():
 	copy.remove(impostor)
 	global roundkill
 	roundkill=crewmates.remove(random.choice(copy))
+	# check if endgame
+	# this means only impos remains
+
+	print("The imposter has killed the other last crewmate on board. Only you and the impostor remain.")
+	print("There is nothing for you to do now but await your doom.")
+	printending("impostor victory")
+	
+	# if len(crewmates)==1:
+	# 	dialogue(impostor, "HAHA")
+	# 	dialogue(impostor, "HAHAHAHAHAHAHA")
+	# 	print("Oh no.")
+	# 	dialogue(impostor, "I'm a little surprised that nobody voted me out.")
+	# 	dialogue(impostor, "I bet if you had done things a bit differently, I would've been voted out.")
+	# 	dialogue(impostor, "But, well, good news for me I guess!")
+	# 	print(f"{impostor} aproaches you. You can do nothing but close your eyes and await your doom.")
+	# 	printending("impostor victory")
 	 
 def getyesno(prompt):
 	useroption = input(prompt+" (Y/N): ").lower().strip(" ")
@@ -115,23 +139,28 @@ def colorkarma():
 		return "\033[0;31m" + str(karma) + '\033[0;37m'
 def updatekarma(change=0):
 	symbol=''
+	color='\033[0;31m'
 	global karma
 	karma+=change
 	if change>0:
 		symbol=='+'
-	print(f"Karma: {symbol}{change}")
+		color='\033[0;32m'
+	print("_________________________________\n")
+	print(f"Karma: {color}{symbol}{change}\033[0;37m")
 	print(f"You have {colorkarma()} karma.")
+	print("_________________________________\n")
 def printending(ending, userdeath=False):
 	print(f"You have achived the {ending.upper()} ending.")
 	print(f"You had {colorkarma()} karma.")
 	crewmates.remove(impostor)
 	if userdeath == True:
 		crewmates.clear()
+		print("Nobody survives.")
 	if len(crewmates)==4:
 		print("All crewmates survived.")
 		return
-	if len(crewmates)<=1:
-		print("One crewmate remain on the ship.")
+	if len(crewmates)==1:
+		print("One lonely crewmate remains on the ship.")
 		return
 	print(f"{len(crewmates)} crewmates survived.")
 	return
@@ -174,10 +203,11 @@ def trustcut():
 		if getyesno(f"You are now in {roomcut}. Do you do your task? (Y/N): "):
 			print("You decide to be productive.")
 			taskmath()
-			print("ship stability: +10")
+			updatekarma(50)
 			return
 		else:
 			print("Bruh. Ok, fine.")
+			updatekarma(-50)
 			return
 		
 
@@ -238,35 +268,41 @@ def crewmatechatcut():
 		print(f"While walking around the map, you pass by {impostor}. They smile at you menacingly. You think they're a little creepy so you look away.")
 		updatekarma(-50)
 		
-def impostorhintcut():
-	# charactercut = random.choice(crewmates)
+def impostorhintcut(): # not impos, impos, walk in on murder, no event -> crewmate finds body
+	charactercut = random.choice(crewmates)
+	if charactercut == impostor(): isimpos=True
 	roomcut = random.choice(roomlist)
 
 	if roomcut == "the medbay":
-		print(f"You walk by {impostor} in the medbay.")
+		print(f"You walk by {charactercut} in the medbay.")
 		userans = getyesno("They're doing a body scan. Would you like to check it out?")
 		if userans == False:
 			print(f"You decide to mind your own buisness.")
 
 		print("You decide to collect some intel.")
-		print("...")
-		print(f"{impostor}'s scans are very, very strange.")
-		print(f"Oh crap, they're going to see you snooping.")
-		if doaction("HIDE") == True:
-			print(f"You hide behind the wall. They didn't notice you.")
-			if getyesno("Would you like to call a emergency meeting to discuss what you saw?: ") == False:
-				print("You decide to ignore what you saw.")
+		if isimpos:
+			print(f"{impostor}'s scans are very, very strange. It's almost as if they're... alien...")
+			print(f"Oh crap, they're going to see you snooping.")
+			if doaction("HIDE") == True:
+				print(f"You hide behind the wall. They didn't notice you.")
+				if getyesno("Would you like to call a emergency meeting to discuss what you saw?: ") == False:
+					print("You decide to ignore what you saw.")
+					karma(-100)
+				else:
+					print("You run to the main lobby to announce a meeting.")
+					meetingcut('witness sussy thing')
+		
 			else:
-				print("You run to the main lobby to announce a meeting.")
-				meetingcut('witness sussy thing')
+				deathending(impostor, roomcut)
 		else:
-			deathending(impostor, roomcut)
-			
+			print(f"It looks like charactercut isn't the impostor.")
+			karma(+50)
 	if roomcut == "the electrical":
 		print(f"You pass by the electrical and see {impostor}.")
-		print(f"They seem to be messing with the lights...")
+		print(f"They're messing with the lights!")
 		if getyesno("Would you like to call a emergency meeting to discuss what you saw?: ") == False:
-				print("You decide to ignore what you saw.")
+			print("You decide to ignore what you saw.")
+			karma(-50)
 		else:
 				print("You run to the main lobby to announce a meeting.")
 				meetingcut('witness sussy thing')
@@ -295,7 +331,6 @@ def impostorhintcut():
 		
 	if roomcut == "the com room":
 		print("You run to the com room for some tasks. On the side, you check the cams.")
-		print("...")
 		print("You might've just saw someone venting.")
 		print(f"There was a flash of {impostor.lower()}.")
 		if getyesno("Would you like to call a emergency meeting to discuss what you saw?") == False:
@@ -313,9 +348,11 @@ def impostorhintcut():
 		if getyesno("Would you like to call a emergency meeting to discuss what you saw?") == False:
 				print("You decide to ignore what you saw.")
 				updatekarma(-300)
+				print("...")
+				randomthoughtscut()
+				print("")
 		else:
 				print("You make a emergency broadcast.")
-				print("...")
 				meetingcut('witness sussy thing')
 		
 
@@ -358,6 +395,60 @@ def emergencymalfunctioncut():
  # completed
 def meetingcut(reason='none'):
 	# the result of this meeting will depend on your level of trust and hostility you have with the other crewmates
+	if reason == "other crewmate finds body":
+		print("You hear a emergency meeting announcement.")
+		kill()
+		reporter=random.choice(crewmates) # impostor left in as it could be a self report
+		dialogue(reporter, f"I found {roundkill} dead...")
+		dialogue(user, f"...")
+		dialogue(user, f"Tell me the details.")
+		print(f"{reporter} tells you everything. Unfortunately, they have not seen who had killed {roundkill}.")
+		copy = crewmates
+		copy.append(user)
+		copy.append('skip')
+		print("Here are the list of people you can vote for: ")
+		print(*copy, sep=', ')
+		print("Note that 'skip' exists aswell.")
+		
+		userans=input("Who do you vote for?:").lowercase().strip(' ').capitalize()
+		while userans not in copy:
+			input("Please enter a proper option: ").lowercase().strip(' ').capitalize()
+
+		ejected=''
+		if karmastate() == 'red':
+			ejected = random.choice(copy)
+			print(f"The majority lands on {ejected}.")
+		else: # yellow or green
+			if userans!='skip':
+				if luck(max=5):
+					ejected = userans
+					print(f"The majority lands on {ejected}.")
+			else:
+				print(f"Majority decides to skip vote.")
+				return
+		
+		if ejected == impostor:
+				print(f"{impostor} has been ejected.")
+				print(f"{impostor} was the impostor. How lucky!")
+				printending("lucky")
+				exit(0)
+			
+			if ejected == user:
+				print(f"You have been ejected. Very unlucky of you.")
+				printending('ejected', True)
+				exit(0)
+
+		print(f"{ejected} has been ejected.")
+		print(f"{ejected} was not the impostor.")
+		crewmates.remove(ejected)
+		if len(crewmates) == 1:
+			print("...")
+			print("You are now the last crewmate on board. Only you and the imposter remain.")
+			print("There is nothing for you to do now but await your doom.")
+			printending("impostor victory")
+			exit(0)
+		print("...")	
+		
 	if reason == "witness sussy thing":
 		print("...")
 		dialogue(random.choice(crewmates), "Whats this meeting for? I was in the middle of a task.")
@@ -368,13 +459,12 @@ def meetingcut(reason='none'):
 
 		print(f"Your karma is currently at {colorkarma()}.")
 
-		if karmastate == 'yellow':
-			print(f"You have a netural karma.")
-			print(f"You have a 50% chance to survive.")
+		if karmastate() == 'yellow':
+			print(f"You have a netural karma. You have a 50% chance to survive.")
 			luck(max=2)
-		if karmastate == 'green':
+		if karmastate() == 'green':
 			print(f"You have a good karma. The crewmates decide to listen to you, and ejects {impostor}.")
-		if karmastate == 'red':
+		if karmastate() == 'red':
 			print(f"You have bad karma.")
 			print("You have a 1% chance that they will belive you.")
 			if luck(max=100) == False:
@@ -401,20 +491,7 @@ def meetingcut(reason='none'):
 	if reason == "body encountered":
 		print()
 
-	# check if endgame
-
-	# if user is voted out (ending: ejected), all crewmates are going to die
-	# impostor kick is called crewmates victory
-	# this means only impos remains
-	if crewmates.len() == 1 and crewmates[0] == impostor:
-		dialogue(impostor, "HAHA")
-		dialogue(impostor, "HAHAHAHAHAHAHA")
-		print("Oh no.")
-		dialogue(impostor, "I'm a little surprised that nobody voted me out.")
-		dialogue(impostor, "I bet if you had done things a bit differently, I would've been voted out.")
-		dialogue(impostor, "But, well, good news for me I guess!")
-		print(f"{impostor} aproaches you. You can do nothing but close your eyes and await your doom.")
-		printending("impostor")
+	
 def bodyencountercut():
 	charactercut = random.choice(crewmates)
 	roomcut = random.choice(roomlist)
@@ -461,4 +538,4 @@ def bugending():
 # neutral ending - generally average scores and survivals
 # impostor ending: the user all the worst options. revealed that you were actually the impostor all along
 
-impostorhintcut()
+meetingcut('witness sussy thing')
